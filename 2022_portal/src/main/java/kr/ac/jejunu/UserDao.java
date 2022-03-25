@@ -3,11 +3,14 @@ package kr.ac.jejunu;
 import java.sql.*;
 
 public class UserDao {
+    private final kr.ac.jejunu.connectionMaker connectionMaker;
+
+    public UserDao(kr.ac.jejunu.connectionMaker connectionMaker) {
+        this.connectionMaker = connectionMaker;
+    }
+
     public User findById(Integer id) throws ClassNotFoundException, SQLException {
-        //드라이버 로딩
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        //커넥션
-        Connection connection = DriverManager.getConnection("jdbc:mysql://192.168.151.176:3306/jeju?serverTimezone=UTC","jeju","jejupw");
+        Connection connection = connectionMaker.getConnection();
         //sql 작성
         PreparedStatement preparedStatement = connection.prepareStatement("select * from userinfo where id = ?");
         preparedStatement.setInt(1, id);
@@ -25,5 +28,31 @@ public class UserDao {
         connection.close();
         //User 리펀
         return user;
+    }
+
+    public void insert(User user) throws ClassNotFoundException, SQLException {
+        Connection connection = connectionMaker.getConnection();
+        //sql 작성
+        PreparedStatement preparedStatement = connection.prepareStatement("insert into userinfo(name,password) values(?, ?)",
+                Statement.RETURN_GENERATED_KEYS
+        );
+        preparedStatement.setString(1,user.getName());
+        preparedStatement.setString(2,user.getPassword());
+        //sql 실행
+        preparedStatement.executeUpdate();
+        ResultSet resultSet = preparedStatement.getGeneratedKeys();
+        resultSet.next();
+        //User 에 데이터 매핑
+        user.setId(resultSet.getInt(1));
+        //자원 해지
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+    }
+
+    public Connection getConnection() throws ClassNotFoundException, SQLException{
+        //드라이버 로딩
+        //커넥션
+        return connectionMaker.getConnection();
     }
 }
