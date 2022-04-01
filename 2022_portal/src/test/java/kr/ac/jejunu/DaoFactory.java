@@ -1,11 +1,38 @@
+//DaoFactory => Spring Container(ApplicationContext)
+
 package kr.ac.jejunu;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Driver;
+
+//Configuration : springFramework에서 제공해주는 메소드들을 사용할 수 있게 해줌
+@Configuration
 public class DaoFactory {
-    public UserDao getUserDao() {
-        return new UserDao(getConnectionMaker());
+    @Value("${db.drivername}")
+    private String driverClassName; //= "com.mysql.cj.jdbc.Driver";
+    @Value("${db.url}")
+    private String url; //= "jdbc:mysql://192.168.151.176:3306/jeju?serverTimezone=UTC";
+    @Value("${db.username}")
+    private String username; //= "jeju";
+    @Value("${db.password}")
+    private String password; //= "jejupw";
+    @Bean
+    public UserDao userDao() throws ClassNotFoundException {
+        return new UserDao(dataSource());
     }
 
-    private connectionMaker getConnectionMaker() {
-        return new JejuconnectionMaker();
+    @Bean
+    public DataSource dataSource() throws ClassNotFoundException {
+        SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+        dataSource.setDriverClass((Class<? extends Driver>) Class.forName(driverClassName));
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        return dataSource;
     }
 }
