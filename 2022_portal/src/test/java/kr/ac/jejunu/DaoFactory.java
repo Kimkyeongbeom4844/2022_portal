@@ -1,5 +1,3 @@
-//DaoFactory => Spring Container(ApplicationContext)
-
 package kr.ac.jejunu;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +8,6 @@ import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import javax.sql.DataSource;
 import java.sql.Driver;
 
-//Configuration : springFramework에서 제공해주는 메소드들을 사용할 수 있게 해줌
 @Configuration
 public class DaoFactory {
     @Value("${db.drivername}")
@@ -23,13 +20,18 @@ public class DaoFactory {
     private String password; //= "jejupw";
     @Bean
     public UserDao userDao() throws ClassNotFoundException {
-        return new UserDao(dataSource());
+        return new UserDao(jdbcContext());
+    }
+
+    public jdbcContext jdbcContext() throws ClassNotFoundException {
+        return new jdbcContext(dataSource());
     }
 
     @Bean
     public DataSource dataSource() throws ClassNotFoundException {
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
-        dataSource.setDriverClass((Class<? extends Driver>) Class.forName(driverClassName));
+        dataSource.setDriverClass(
+                (Class<? extends Driver>) Class.forName(driverClassName));
         dataSource.setUrl(url);
         dataSource.setUsername(username);
         dataSource.setPassword(password);
